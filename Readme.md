@@ -5,7 +5,61 @@ The readers-writers problem is a classical problem of process synchronization, i
 
 ### Classical Solution
  In the classical solution, Either readers are given priority over writers or vice versa. This creates the problem of **starvation**.
- 
+ In this, we have following data structures to implement **readers-first** solution.
+
+`semaphore rw mutex = 1;`
+
+`semaphore mutex = 1;`
+
+`int read_count = 0;`
+
+The semaphores mutex and rw mutex are initialized to 1; read_count is
+initialized to 0 which basically counts number of readers present currently. The semaphore rw mutex is common to both reader and writer. 
+
+### Writer implementation
+`do {`
+
+`wait(rw mutex);`
+
+`/* writing is performed */`
+
+`signal(rw mutex);`
+
+`} while (true); `
+
+### Reader implementation
+`do { `
+
+`wait(mutex);`
+
+`read_count++;`
+
+`if (read_count == 1)`
+
+`wait(rw_mutex);`
+
+`signal(mutex);`
+
+`/* reading is performed */`
+
+`wait(mutex);`
+
+`read count--;`
+
+`if (read_count == 0){`
+
+`signal(rw_mutex);}`
+
+`signal(mutex);`
+
+`} while (true);`
+
+Source for classical solution: _Operating Systems Concpts~ Abraham Silberschatz_
+
+### How starvation occurs in classical solution:
+   Notice that when read_count is greater than 0(i.e. even if one reader is present), rw_mutex is not released by readers. Thus if a writer is waiting for writing and new readers keep on coming, writer will never get chance to write and hence will starve.
+
+
  Now we present how starvation can be avoided. A generic idea is proposed below and **exact details of implementation are given in form of comments in the pseudocode.**
  ## Starve Free Readers-Writers Problem
 
