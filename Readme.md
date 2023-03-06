@@ -60,7 +60,7 @@ Source for classical(starved) solution: _Operating Systems Concpts~ Abraham Silb
  Now we present how starvation can be avoided. A generic idea is proposed below and **exact details of implementation are given in form of comments in the pseudocode.**
  ## Starve Free Readers-Writers Problem
 
-In the starve-free solution, the `newSem `semaphore is used in addition to the `readSem` and `write_mutex` semaphore. This must be acquired before any reader or writer  acquires the `rw_mutex` or before entrance of any reader in its critical section. This eliminates the risk of starvation as if writer comes before readers, he will have the `newSem` and thus he won't be waiting for readers.
+In the starve-free solution, the `newSem `semaphore is used in addition to the `readSem` and `rw_mutex` semaphore. This must be acquired before any reader or writer  acquires the `rw_mutex` or before entrance of any reader in its critical section. This eliminates the risk of starvation as if writer comes before readers, he will have the `newSem` and thus he won't be waiting for readers.
 
 Even if the order of arrival is reader-> writer-> reader with some readers present in Critical section, as writer has `newSem` readers are denied the access to it.Hence when all readers leave the critical section, writer will be the first to acquire the semaphore `rw_mutex`  (because he arrived before and thus at the front of waiting queue of `rw_mutex`).Now he can perform writing and thus synchronization without starvation proceeds as both readers and writers have same preference.
 
