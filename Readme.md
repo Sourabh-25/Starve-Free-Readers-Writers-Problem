@@ -1,7 +1,7 @@
 # Readers-Writers Problem
-The readers-writers problem is a classical problem of process synchronization, it relates to a data set such as a file that is shared between more than one process at a time. Among these various processes, some are Readers - which can only read the data set; they do not perform any updates, some are Writers - can both read and write in the data sets.
+The readers-writers problem is a classical problem of process synchronization,  It deals with the situation where multiple threads of execution (processes or threads) need to access a shared resource, where some threads only read from the resource, while others may also write to it. 
 ## Problem
- In this system, multiple redears are allowed to read files simutaneously but while a writer is writing(editing) a file, no reader is allowed to read and no writer is allowed to write. This whole process needs synchronization.
+ In this system, multiple redears are allowed to read files simutaneously but while a writer is writing(editing) a file, no reader is allowed to read and no writer is allowed to write. This whole process needs synchronization.The goal is to ensure that all threads can access the resource without interfering with each other.
 
 ### Classical Solution
  In the classical solution, Either readers are given priority over writers or vice versa. This creates the problem of **starvation**.
@@ -15,7 +15,7 @@ int read_count = 0;
 ```
 
 The semaphores mutex and rw mutex are initialized to 1; read_count is
-initialized to 0 which basically counts number of readers present currently. The semaphore rw mutex is common to both reader and writer. 
+initialized to 0 which basically counts number of readers present currently. The semaphore rw_mutex is common to both reader and writer. 
 
 ### Writer implementation
 ```
@@ -51,7 +51,7 @@ signal(mutex);
 } while (true);
 ```
 
-Source for classical solution: _Operating Systems Concpts~ Abraham Silberschatz_
+Source for classical(starved) solution: _Operating Systems Concpts~ Abraham Silberschatz_
 
 ### How starvation occurs in classical solution:
    Notice that when read_count is greater than 0 (i.e. even if one reader is present), rw_mutex is not released by readers. Thus if a writer is waiting for writing and new readers keep on coming, writer will never get chance to write and hence will starve.
@@ -60,6 +60,7 @@ Source for classical solution: _Operating Systems Concpts~ Abraham Silberschatz_
  Now we present how starvation can be avoided. A generic idea is proposed below and **exact details of implementation are given in form of comments in the pseudocode.**
  ## Starve Free Readers-Writers Problem
 
-In the starve-free solution, the `newSem `semaphore is used in addition to the `read_mutex` and `write_mutex` semaphore. This is first required to be obained before anyone (the reader or the writer) accesses the `rw_mutex` or before anyone (any reader) enters the critcal section directly. This solves the problem of starvation as if readers keep coming one after another, then this won't starve the writers as it used to in first readers problem.
+In the starve-free solution, the `newSem `semaphore is used in addition to the `readSem` and `write_mutex` semaphore. This must be acquired before any reader or writer  acquires the `rw_mutex` or before entrance of any reader in its critical section. This eliminates the risk of starvation as if writer comes before readers, he will have the `newSem` and thus he won't be waiting for readers.
 
- Here, if a writer comes in between two readers, and even if some readers are still present in the critical section,the writer would have already acquired the `newSem` and thus the reader can't acquire it and thus after the existing readers exit the critical section, the writer that was waiting would be the first to acquire `rw_mutex` (as it will be at front in the queue of `rw_mutex`) and thus acquires it. Now the writer can enter the critical section and the same process would repeat. Thus readers and writers are now at equal priority and none would starve. Doing this also preserves the advantage of readers not having to acquire the `rw_mutex` everytime, when some other reader is already present. Thus an effiecient and starve-free solution to the Reader-Writer problem.
+Even if the order of arrival is reader-> writer-> reader with some readers present in Critical section, as writer has `newSem` readers are denied the access to it.Hence when all readers leave the critical section, writer will be the first to acquire the semaphore `rw_mutex`  (because he arrived before and thus at the front of waiting queue of `rw_mutex`).Now he can perform writing and thus synchronization without starvation proceeds as both readers and writers have same preference.
+
