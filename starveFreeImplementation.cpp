@@ -4,42 +4,42 @@ class semaphore
 { // we accomodate binary and counting semaphores in same class.
 
 public:
-    long long value;
+    long long availableResources;
 
     semaphore(int n)
-    { // here n is the number of resources of that type available
-        value = n;
+    { // here n is the number of instances of resource 
+        availableResources = n;// initially availableResources will be equal to num of instances.
     }
 
     void signal()
     {            // standard V(S) method
-        value++; // value of semaphore is incremented as signal is called.
+        availableResources++; // availableResources of semaphore is incremented as signal is called.
         return;
     }
 
     void wait()
     { // standard P(S) method
-        while (value <= 0)
+        while (availableResources <= 0)
         {
             ; // do nothing as semaphore is acquired by some other process
         }
-        value--;
+        availableResources--;
     }
 };
 
-//////////////////////////////////////////////////////////////////////////////////////////
+//___________________________________________________________________________________________________________
 
 // INITIALIZATION and variable declaration for starve free reader-writer problem
 
 long long numOfResources = 1; // can be varied but then semaphore type may change
 
-// rw_mutex and read_mutex are standard semaphores in classical solution of readers writers problem
+// rw_mutex and readSem are standard semaphores in classical solution of readers writers problem
 
 semaphore rw_mutex(numOfResources); // instantiating rw_mutex semaphore
 
 int rdCnt = 0; // maintains readers count
 
-semaphore read_mutex(numOfResources);
+semaphore readSem(numOfResources);
 
 //  The above three data structures are the same as above in the classical solution
 
@@ -47,7 +47,7 @@ semaphore newSem(numOfResources); // The new semaphore is used at begining of bo
                                   // which both try to acquire at begining.
                                   // both the redears and writers have equal priority for acquiring
 
-//////////////////////////////////////////////////////////////////////////////////////////////
+//___________________________________________________________________________________________________________
 
 //  Starve free writers implementation
 void starveFreeWriter(int PID)
@@ -68,7 +68,7 @@ void starveFreeWriter(int PID)
     rw_mutex.signal();
 }
 
-/////////////////////////////////////////////////////////////////////////////////////
+//____________________________________________________________________________________________________________
 
 //  STARVE-FREE READER CODE
 void starveFreeReader(int PID)
@@ -78,7 +78,7 @@ void starveFreeReader(int PID)
     newSem.wait();
     //  can be acquired by writers/readers with equal priority with mutual exclusion
 
-    read_mutex.wait(); // to implement mutual exclusion so that race condition doesnt happen  for rdCnt
+    readSem.wait(); // to implement mutual exclusion so that race condition doesnt happen  for rdCnt
 
     ++rdCnt;
 
@@ -88,17 +88,17 @@ void starveFreeReader(int PID)
         rw_mutex.wait();
     }
 
-    read_mutex.signal(); // now readers that have acquired the newSem can access the rdCnt
+    readSem.signal(); // now readers that have acquired the newSem can access the rdCnt
 
     newSem.signal();
     //  Once the reader is ready to enter the critical section, it frees the newSem semaphore
-    //  This newSem semaphore can be acquired by anyone arriving first
+    //  This newSem semaphore can be acquired by any reader arriving first
 
     // ***** CRITICAL SECTION ***** //
 
-    read_mutex.wait(); // mutual exclusion for rdCnt;
+    readSem.wait(); // mutual exclusion for rdCnt;
     --rdCnt;
-    read_mutex.signal();
+    readSem.signal();
 
     if (rdCnt == 0)
     {
